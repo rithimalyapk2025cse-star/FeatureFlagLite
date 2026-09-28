@@ -1,0 +1,729 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FeatureFlagLite | Dashboard</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand-block">
+        <div class="brand-mark">FF</div>
+        <div class="brand-text">
+          <span>FeatureFlag</span>
+          <strong>Lite</strong>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav" aria-label="Main navigation">
+        <a class="nav-item active" href="#overview">Dashboard</a>
+        <a class="nav-item" href="#features">Features</a>
+        <a class="nav-item" href="#evaluation">User Evaluation</a>
+        <a class="nav-item" href="#history">Change History</a>
+        <a class="nav-item" href="#system-info">API / System Info</a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <span class="status-dot"></span>
+        <span>System Status: ONLINE</span>
+      </div>
+    </aside>
+
+    <main class="main-panel">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">FeatureFlagLite</p>
+          <h1>Feature Flag &amp; Configuration Management</h1>
+        </div>
+
+        <div class="top-actions">
+          <button id="refreshBtn" class="ghost-button" type="button">Refresh</button>
+          <div class="online-chip">
+            <span class="status-dot"></span>
+            ONLINE
+          </div>
+        </div>
+      </header>
+
+      <section id="overview" class="stats-grid">
+        <article class="stat-card accent-blue">
+          <div class="stat-icon">⚑</div>
+          <div>
+            <label>Total Features</label>
+            <strong id="totalFeatures">0</strong>
+          </div>
+        </article>
+
+        <article class="stat-card accent-green">
+          <div class="stat-icon">✓</div>
+          <div>
+            <label>Enabled Features</label>
+            <strong id="enabledFeatures">0</strong>
+          </div>
+        </article>
+
+        <article class="stat-card accent-red">
+          <div class="stat-icon">◌</div>
+          <div>
+            <label>Disabled Features</label>
+            <strong id="disabledFeatures">0</strong>
+          </div>
+        </article>
+
+        <article class="stat-card accent-indigo">
+          <div class="stat-icon">◎</div>
+          <div>
+            <label>Average Rollout</label>
+            <strong id="averageRollout">0%</strong>
+          </div>
+        </article>
+      </section>
+
+      <section id="features" class="panel">
+        <div class="panel-header">
+          <div>
+            <p class="section-kicker">FEATURE FLAGS OVERVIEW</p>
+            <h2>Release Controls</h2>
+          </div>
+
+          <div class="toolbar">
+            <label class="search-box" for="featureSearch">
+              <span>⌕</span>
+              <input id="featureSearch" type="search" placeholder="Search Features" />
+            </label>
+
+            <select id="environmentFilter" aria-label="Filter by environment">
+              <option value="ALL">Environment: ALL</option>
+              <option value="DEV">DEV</option>
+              <option value="TEST">TEST</option>
+              <option value="PROD">PROD</option>
+            </select>
+
+            <select id="stateFilter" aria-label="Filter by state">
+              <option value="ALL">State: ALL</option>
+              <option value="ON">ON</option>
+              <option value="OFF">OFF</option>
+            </select>
+
+            <button id="createFeatureBtn" class="primary-button" type="button">+ Create Feature</button>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table class="feature-table">
+            <thead>
+              <tr>
+                <th>Feature Name</th>
+                <th>Description</th>
+                <th>Default State</th>
+                <th>Rollout %</th>
+                <th>DEV</th>
+                <th>TEST</th>
+                <th>PROD</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="featureTableBody">
+              <tr>
+                <td colspan="8" class="table-empty">Loading feature data...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="two-column-layout">
+        <article id="evaluation" class="panel">
+          <div class="panel-header compact">
+            <div>
+              <p class="section-kicker">USER EVALUATION</p>
+              <h3>Evaluate Access</h3>
+            </div>
+          </div>
+
+          <form id="evaluationForm" class="stack-form">
+            <div class="form-grid">
+              <label>
+                Feature
+                <select id="evaluationFeature" required></select>
+              </label>
+
+              <label>
+                Environment
+                <select id="evaluationEnvironment" required>
+                  <option value="DEV">DEV</option>
+                  <option value="TEST">TEST</option>
+                  <option value="PROD">PROD</option>
+                </select>
+              </label>
+
+              <label class="full-width">
+                User ID
+                <input id="userIdInput" type="text" placeholder="user123" required />
+              </label>
+            </div>
+
+            <button type="submit" class="primary-button submit-button">Evaluate User</button>
+          </form>
+
+          <div id="evaluationResult" class="result-card hidden" aria-live="polite"></div>
+        </article>
+
+        <article id="history" class="panel">
+          <div class="panel-header compact">
+            <div>
+              <p class="section-kicker">CHANGE HISTORY</p>
+              <h3>Recent Environment Changes</h3>
+            </div>
+          </div>
+
+          <div id="historyList" class="history-list">
+            <div class="history-item placeholder">Loading change history...</div>
+          </div>
+        </article>
+      </section>
+
+      <section class="two-column-layout bottom-grid">
+        <article id="system-info" class="panel info-panel">
+          <div class="panel-header compact">
+            <div>
+              <p class="section-kicker">API / SYSTEM INFO</p>
+              <h3>Technology Stack</h3>
+            </div>
+          </div>
+
+          <div class="system-grid">
+            <div><span>Backend</span><strong>Spring Boot</strong></div>
+            <div><span>Database</span><strong>MySQL</strong></div>
+            <div><span>ORM</span><strong>Hibernate / JPA</strong></div>
+            <div><span>Frontend</span><strong>Thymeleaf + HTML/CSS/JavaScript</strong></div>
+            <div><span>Build</span><strong>Maven</strong></div>
+            <div><span>Java</span><strong>17</strong></div>
+            <div><span>Status</span><strong class="status-online">ONLINE</strong></div>
+          </div>
+        </article>
+
+        <article class="panel rollout-panel">
+          <div class="panel-header compact">
+            <div>
+              <p class="section-kicker">ROLLOUT LOGIC</p>
+              <h3>Percentage Rollout</h3>
+            </div>
+          </div>
+
+          <div class="rollout-box">
+            <div class="rollout-scale">
+              <span>0%</span>
+              <span>50%</span>
+              <span>100%</span>
+            </div>
+            <div class="rollout-track">
+              <div id="rolloutPreview" class="rollout-fill"></div>
+            </div>
+            <p class="rollout-copy">
+              0% means no users receive the feature. 50% is a partial rollout. 100% means all eligible users are included.
+            </p>
+          </div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <div id="modalBackdrop" class="modal-backdrop hidden" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-header">
+        <h3 id="modalTitle">Feature</h3>
+        <button type="button" class="close-button" id="closeModalBtn">×</button>
+      </div>
+      <div id="modalBody"></div>
+    </div>
+  </div>
+
+  <div id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+
+  <script>
+    const ENVIRONMENT_ORDER = ['DEV', 'TEST', 'PROD'];
+    let flags = [];
+    let stateMap = {};
+    let filterSearch = '';
+    let filterEnvironment = 'ALL';
+    let filterState = 'ALL';
+
+    const elements = {
+      totalFeatures: document.getElementById('totalFeatures'),
+      enabledFeatures: document.getElementById('enabledFeatures'),
+      disabledFeatures: document.getElementById('disabledFeatures'),
+      averageRollout: document.getElementById('averageRollout'),
+      featureTableBody: document.getElementById('featureTableBody'),
+      featureSearch: document.getElementById('featureSearch'),
+      environmentFilter: document.getElementById('environmentFilter'),
+      stateFilter: document.getElementById('stateFilter'),
+      evaluationFeature: document.getElementById('evaluationFeature'),
+      evaluationResult: document.getElementById('evaluationResult'),
+      historyList: document.getElementById('historyList'),
+      rolloutPreview: document.getElementById('rolloutPreview'),
+      modalBackdrop: document.getElementById('modalBackdrop'),
+      modalTitle: document.getElementById('modalTitle'),
+      modalBody: document.getElementById('modalBody'),
+      toastContainer: document.getElementById('toastContainer')
+    };
+
+    async function apiRequest(url, options = {}) {
+      const response = await fetch(url, options);
+      if (!response.ok) {
+        let message = 'Request failed';
+        try {
+          const errorData = await response.json();
+          message = errorData.message || message;
+        } catch (error) {
+          message = response.statusText || message;
+        }
+        throw new Error(message);
+      }
+
+      if (response.status === 204) return null;
+      const contentType = response.headers.get('content-type') || '';
+      if (contentType.includes('application/json')) {
+        return response.json();
+      }
+      return response.text();
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '').replace(/[&<>"']/g, (char) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      }[char]));
+    }
+
+    function showToast(message, isError = false) {
+      const toast = document.createElement('div');
+      toast.className = `toast ${isError ? 'toast-error' : 'toast-success'}`;
+      toast.textContent = message;
+      elements.toastContainer.appendChild(toast);
+      setTimeout(() => toast.remove(), 2600);
+    }
+
+    async function loadDashboard() {
+      try {
+        flags = await apiRequest('/api/flags');
+        await loadEnvironmentStates();
+        renderSummary();
+        renderFeatureTable();
+        renderHistory();
+        populateEvaluationOptions();
+        renderRolloutPreview();
+      } catch (error) {
+        elements.featureTableBody.innerHTML = `<tr><td colspan="8" class="table-empty error-message">${escapeHtml(error.message)}</td></tr>`;
+        showToast(error.message, true);
+      }
+    }
+
+    async function loadEnvironmentStates() {
+      const entries = await Promise.all(flags.map(async (flag) => {
+        const states = {};
+        for (const env of ENVIRONMENT_ORDER) {
+          try {
+            const state = await apiRequest(`/api/flags/${flag.id}/state/${env}`);
+            states[env] = Boolean(state && state.enabled);
+          } catch (error) {
+            states[env] = Boolean(flag.defaultState);
+          }
+        }
+        return [flag.id, states];
+      }));
+      stateMap = Object.fromEntries(entries);
+    }
+
+    function getFlagState(flag, env) {
+      const envState = stateMap[flag.id] && stateMap[flag.id][env];
+      return Boolean(envState !== undefined ? envState : flag.defaultState);
+    }
+
+    function getEffectiveStatus(flag) {
+      const values = ENVIRONMENT_ORDER.map((env) => getFlagState(flag, env));
+      return values.some(Boolean) || flag.defaultState;
+    }
+
+    function renderSummary() {
+      const total = flags.length;
+      const enabled = flags.filter((flag) => flag.defaultState).length;
+      const disabled = total - enabled;
+      const average = total > 0
+        ? Math.round(flags.reduce((sum, flag) => sum + Number(flag.rolloutPercentage), 0) / total)
+        : 0;
+
+      elements.totalFeatures.textContent = total;
+      elements.enabledFeatures.textContent = enabled;
+      elements.disabledFeatures.textContent = disabled;
+      elements.averageRollout.textContent = `${average}%`;
+    }
+
+    function renderFeatureTable() {
+      const searchValue = filterSearch.trim().toLowerCase();
+
+      const filteredFlags = flags.filter((flag) => {
+        const matchesSearch = !searchValue || `${flag.name} ${flag.description}`.toLowerCase().includes(searchValue);
+        const matchesEnvironment = filterEnvironment === 'ALL' || getFlagState(flag, filterEnvironment);
+        const overallStatus = getEffectiveStatus(flag);
+        const matchesState = filterState === 'ALL' || (filterState === 'ON' ? overallStatus : !overallStatus);
+        return matchesSearch && matchesEnvironment && matchesState;
+      });
+
+      if (!filteredFlags.length) {
+        elements.featureTableBody.innerHTML = `
+          <tr>
+            <td colspan="8" class="table-empty">
+              <strong>No matching feature flags found.</strong>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      elements.featureTableBody.innerHTML = filteredFlags.map((flag) => {
+        const envCells = ENVIRONMENT_ORDER.map((env) => {
+          const enabled = getFlagState(flag, env);
+          return `
+            <td>
+              <div class="env-status-cell">
+                <span class="env-badge ${enabled ? 'env-on' : 'env-off'}">${env}</span>
+                <span class="env-value ${enabled ? 'on' : 'off'}">${enabled ? 'ON' : 'OFF'}</span>
+                <button type="button" class="small-toggle" data-id="${flag.id}" data-env="${env}" data-enabled="${enabled}">
+                  ${enabled ? 'Turn OFF' : 'Turn ON'}
+                </button>
+              </div>
+            </td>
+          `;
+        }).join('');
+
+        return `
+          <tr>
+            <td>
+              <div class="feature-name-wrap">
+                <span class="feature-bullet">⚑</span>
+                <div>
+                  <strong>${escapeHtml(flag.name)}</strong>
+                  <small>ID #${flag.id}</small>
+                </div>
+              </div>
+            </td>
+            <td class="description-cell">${escapeHtml(flag.description)}</td>
+            <td>
+              <span class="state-badge ${flag.defaultState ? 'on' : 'off'}">${flag.defaultState ? 'ON' : 'OFF'}</span>
+            </td>
+            <td>
+              <div class="rollout-mini">
+                <div class="rollout-bar"><span style="width: ${flag.rolloutPercentage}%"></span></div>
+                <strong>${flag.rolloutPercentage}%</strong>
+              </div>
+            </td>
+            ${envCells}
+            <td>
+              <div class="action-group">
+                <button type="button" class="table-action edit-action" data-edit-id="${flag.id}">Edit</button>
+                <button type="button" class="table-action delete-action" data-delete-id="${flag.id}">Delete</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      bindInlineActions();
+    }
+
+    function bindInlineActions() {
+      document.querySelectorAll('[data-edit-id]').forEach((button) => {
+        button.addEventListener('click', () => openEditModal(Number(button.dataset.editId)));
+      });
+
+      document.querySelectorAll('[data-delete-id]').forEach((button) => {
+        button.addEventListener('click', () => deleteFeature(Number(button.dataset.deleteId)));
+      });
+
+      document.querySelectorAll('.small-toggle').forEach((button) => {
+        button.addEventListener('click', async () => {
+          const flagId = Number(button.dataset.id);
+          const environment = button.dataset.env;
+          const enabled = button.dataset.enabled === 'true';
+          await toggleEnvironment(flagId, environment, !enabled);
+        });
+      });
+    }
+
+    function populateEvaluationOptions() {
+      elements.evaluationFeature.innerHTML = flags.map((flag) => `<option value="${flag.id}">${escapeHtml(flag.name)}</option>`).join('');
+    }
+
+    async function renderHistory() {
+      if (!flags.length) {
+        elements.historyList.innerHTML = '<div class="history-item placeholder">No feature changes recorded yet.</div>';
+        return;
+      }
+
+      try {
+        const historyItems = [];
+        for (const flag of flags) {
+          const changes = await apiRequest(`/api/flags/${flag.id}/changes`);
+          changes.forEach((entry) => historyItems.push({ ...entry, featureName: flag.name }));
+        }
+
+        historyItems.sort((a, b) => new Date(b.changedAt) - new Date(a.changedAt));
+
+        if (!historyItems.length) {
+          elements.historyList.innerHTML = '<div class="history-item placeholder">No feature changes recorded yet.</div>';
+          return;
+        }
+
+        elements.historyList.innerHTML = historyItems.slice(0, 12).map((entry) => {
+          const envName = entry.environment && entry.environment.name ? entry.environment.name : 'UNKNOWN';
+          return `
+            <div class="history-item">
+              <div class="history-head">
+                <strong>${escapeHtml(entry.featureName)}</strong>
+                <span class="history-env">${escapeHtml(envName)}</span>
+              </div>
+              <div class="history-state">
+                <span class="state-badge ${entry.oldState ? 'on' : 'off'}">${entry.oldState ? 'ON' : 'OFF'}</span>
+                <span class="history-arrow">→</span>
+                <span class="state-badge ${entry.newState ? 'on' : 'off'}">${entry.newState ? 'ON' : 'OFF'}</span>
+              </div>
+              <small>Changed by ${escapeHtml(entry.changedBy)} • ${new Date(entry.changedAt).toLocaleString()}</small>
+            </div>
+          `;
+        }).join('');
+      } catch (error) {
+        elements.historyList.innerHTML = `<div class="history-item placeholder error-message">${escapeHtml(error.message)}</div>`;
+      }
+    }
+
+    function renderRolloutPreview() {
+      const average = flags.length
+        ? Math.round(flags.reduce((sum, flag) => sum + Number(flag.rolloutPercentage), 0) / flags.length)
+        : 0;
+      elements.rolloutPreview.style.width = `${average}%`;
+    }
+
+    function openCreateModal() {
+      elements.modalTitle.textContent = 'Create Feature';
+      elements.modalBody.innerHTML = `
+        <form id="createFeatureForm" class="modal-form">
+          <div class="form-grid">
+            <label>
+              Feature Name
+              <input id="featureName" type="text" placeholder="New Checkout" required />
+            </label>
+
+            <label>
+              Rollout Percentage
+              <input id="featureRollout" type="number" min="0" max="100" value="100" required />
+            </label>
+
+            <label class="full-width">
+              Description
+              <textarea id="featureDescription" rows="4" placeholder="Describe the feature and release impact" required></textarea>
+            </label>
+
+            <label class="checkbox-row full-width">
+              <input id="featureDefaultState" type="checkbox" />
+              <span>Enable by default</span>
+            </label>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="secondary-button" id="cancelModalBtn">Cancel</button>
+            <button type="submit" class="primary-button">Create Feature</button>
+          </div>
+        </form>
+      `;
+
+      elements.modalBackdrop.classList.remove('hidden');
+      elements.modalBackdrop.setAttribute('aria-hidden', 'false');
+      document.getElementById('cancelModalBtn').addEventListener('click', closeModal);
+      document.getElementById('createFeatureForm').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        await createFeature();
+      });
+    }
+
+    async function createFeature() {
+      const name = document.getElementById('featureName').value.trim();
+      const description = document.getElementById('featureDescription').value.trim();
+      const defaultState = document.getElementById('featureDefaultState').checked;
+      const rolloutPercentage = Number(document.getElementById('featureRollout').value);
+
+      try {
+        await apiRequest('/api/flags', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, description, defaultState, rolloutPercentage })
+        });
+        closeModal();
+        await loadDashboard();
+        showToast('Feature created successfully');
+      } catch (error) {
+        showToast(error.message, true);
+      }
+    }
+
+    function openEditModal(flagId) {
+      const flag = flags.find((item) => item.id === flagId);
+      if (!flag) return;
+
+      elements.modalTitle.textContent = 'Edit Feature';
+      elements.modalBody.innerHTML = `
+        <form id="editFeatureForm" class="modal-form">
+          <div class="form-grid">
+            <label>
+              Feature Name
+              <input id="editFeatureName" type="text" value="${escapeHtml(flag.name)}" required />
+            </label>
+
+            <label>
+              Rollout Percentage
+              <input id="editFeatureRollout" type="number" min="0" max="100" value="${flag.rolloutPercentage}" required />
+            </label>
+
+            <label class="full-width">
+              Description
+              <textarea id="editFeatureDescription" rows="4" required>${escapeHtml(flag.description)}</textarea>
+            </label>
+
+            <label class="checkbox-row full-width">
+              <input id="editFeatureDefaultState" type="checkbox" ${flag.defaultState ? 'checked' : ''} />
+              <span>Enable by default</span>
+            </label>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="secondary-button" id="cancelModalBtn">Cancel</button>
+            <button type="submit" class="primary-button">Save Changes</button>
+          </div>
+        </form>
+      `;
+
+      elements.modalBackdrop.classList.remove('hidden');
+      elements.modalBackdrop.setAttribute('aria-hidden', 'false');
+      document.getElementById('cancelModalBtn').addEventListener('click', closeModal);
+      document.getElementById('editFeatureForm').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        await updateFeature(flagId);
+      });
+    }
+
+    async function updateFeature(flagId) {
+      const name = document.getElementById('editFeatureName').value.trim();
+      const description = document.getElementById('editFeatureDescription').value.trim();
+      const defaultState = document.getElementById('editFeatureDefaultState').checked;
+      const rolloutPercentage = Number(document.getElementById('editFeatureRollout').value);
+
+      try {
+        await apiRequest(`/api/flags/${flagId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, description, defaultState, rolloutPercentage })
+        });
+        closeModal();
+        await loadDashboard();
+        showToast('Feature updated successfully');
+      } catch (error) {
+        showToast(error.message, true);
+      }
+    }
+
+    async function deleteFeature(flagId) {
+      const flag = flags.find((item) => item.id === flagId);
+      if (!flag) return;
+
+      const confirmed = window.confirm(`Delete ${flag.name}? This action cannot be undone.`);
+      if (!confirmed) return;
+
+      try {
+        await apiRequest(`/api/flags/${flagId}`, { method: 'DELETE' });
+        await loadDashboard();
+        showToast('Feature deleted successfully');
+      } catch (error) {
+        showToast(error.message, true);
+      }
+    }
+
+    async function toggleEnvironment(flagId, environment, enabled) {
+      try {
+        await apiRequest(`/api/flags/${flagId}/state?environment=${environment}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ enabled, changedBy: 'Admin' })
+        });
+
+        await loadDashboard();
+        showToast(`${environment} state updated successfully`);
+      } catch (error) {
+        showToast(error.message, true);
+      }
+    }
+
+    document.getElementById('featureSearch').addEventListener('input', (event) => {
+      filterSearch = event.target.value;
+      renderFeatureTable();
+    });
+
+    elements.environmentFilter.addEventListener('change', (event) => {
+      filterEnvironment = event.target.value;
+      renderFeatureTable();
+    });
+
+    elements.stateFilter.addEventListener('change', (event) => {
+      filterState = event.target.value;
+      renderFeatureTable();
+    });
+
+    document.getElementById('createFeatureBtn').addEventListener('click', openCreateModal);
+    document.getElementById('refreshBtn').addEventListener('click', loadDashboard);
+    document.getElementById('closeModalBtn').addEventListener('click', closeModal);
+    elements.modalBackdrop.addEventListener('click', (event) => {
+      if (event.target === elements.modalBackdrop) closeModal();
+    });
+
+    document.getElementById('evaluationForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const featureId = Number(elements.evaluationFeature.value);
+      const environment = document.getElementById('evaluationEnvironment').value;
+      const userId = document.getElementById('userIdInput').value.trim();
+
+      try {
+        const result = await apiRequest(`/api/flags/${featureId}/evaluate/${environment}?userId=${encodeURIComponent(userId)}`);
+        const flagName = flags.find((flag) => flag.id === featureId)?.name || 'Feature';
+        const enabled = Boolean(result.enabledForUser);
+
+        elements.evaluationResult.classList.remove('hidden');
+        elements.evaluationResult.innerHTML = `
+          <div class="result-badge ${enabled ? 'result-enabled' : 'result-disabled'}">${enabled ? 'ENABLED' : 'DISABLED'}</div>
+          <div class="result-meta">
+            <p><strong>Feature:</strong> ${escapeHtml(flagName)}</p>
+            <p><strong>Environment:</strong> ${escapeHtml(environment)}</p>
+            <p><strong>User:</strong> ${escapeHtml(userId)}</p>
+            <p><strong>Result:</strong> ${enabled ? 'ENABLED' : 'DISABLED'}</p>
+          </div>
+          <small>The result is determined using the feature state and rollout percentage.</small>
+        `;
+      } catch (error) {
+        elements.evaluationResult.classList.remove('hidden');
+        elements.evaluationResult.innerHTML = `<div class="result-badge result-disabled">Error</div><small>${escapeHtml(error.message)}</small>`;
+      }
+    });
+
+    function closeModal() {
+      elements.modalBackdrop.classList.add('hidden');
+      elements.modalBackdrop.setAttribute('aria-hidden', 'true');
+      elements.modalBody.innerHTML = '';
+    }
+
+    loadDashboard();
+  </script>
+</body>
+</html>
